@@ -10,13 +10,7 @@ from PIL import Image
 client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
 
 # Database connection parameters
-db_params = {
-    'dbname': 'dev',
-    'host': 'redshift-cluster-1.cjprhvc3s8wv.us-west-2.redshift.amazonaws.com',
-    'port': '5439',
-    'user': 'jupyter_redshift',
-    'password': '2R3JtWu8UtB7niJ'
-}
+db_params = st.secrets["db_credentials"]
 
 def connect_to_db():
     """Establish a connection to the Redshift database."""
