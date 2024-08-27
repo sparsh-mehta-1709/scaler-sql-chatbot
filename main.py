@@ -166,7 +166,8 @@ WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
 	AND extract(day FROM scaler_ebdb_interviewbit_form_responses.created_at) BETWEEN 5
 		AND 26
 	order by 4 desc 
-28. ALWAYS USE DISTINCT KEYWORD IN THE QUERY
+28. ALWAYS USE DISTINCT KEYWORD IN THE QUERY ANS AVOID USING ALIAS
+
     """
 
     schema_info = """
