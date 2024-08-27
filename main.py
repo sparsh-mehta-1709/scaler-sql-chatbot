@@ -140,7 +140,7 @@ def generate_sql_query(user_input):
     TABLE BATCH LESSONS IS CONNECTED WITH MENTEE LESSONS USING BATCH LESSON ID
     TABLE LESSONS IS CONNECTED WITH BATCH LESSONS USING LESSON ID
     TABLE ACADEMY TOPICS IS CONNECTED WITH LESSONS USING ACADEMY TOPIC ID
-    TABLE BATCHES IS CONNECTED WITH BATCH LESSONS USING BATCH ID
+    TABLE BATCHES IS CONNECTED WITH BATCH LESSONS USING BATCH ID 
     TABLE SUPER BATCHES USED FOR GETTING BATCH NAME IS CONNECTED WITH BATCHES USING BATCH ID 
     TABLE SUPER BATCH ACADEMY TOPICS IS CONNECTED USING SUPER BATCH ID IN SUPER BATCHES TABLE AND ID IN ACADEMY TOPICS TABLE 
     WHENEVER IN WHERE CLAUSE DATE IS USED THEN DO DATE_COLUMN::DATE= CONDITION
@@ -234,8 +234,35 @@ Return only the SQL query, without any explanations, comments, or formatting. Us
     return clean_sql_query(generated_sql)
 
 def main():
-    st.title("Scaler Academy Database Chatbot")
-    st.write("You can ask questions about mentees, courses, lessons, companies, and more.")
+    # Set page configuration
+    st.set_page_config(page_title="Scaler Academy Database Chatbot", page_icon="🤖", layout="wide")
+
+    # Custom CSS for better styling
+    st.markdown("""
+    <style>
+    .main {
+        padding: 2rem;
+        border-radius: 0.5rem;
+        background-color: #f0f2f6;
+    }
+    .stButton>button {
+        width: 100%;
+    }
+    .stTextInput>div>div>input {
+        background-color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Application header
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://www.scaler.com/topics/images/scaler-logo.webp", width=100)
+    with col2:
+        st.title("Scaler Academy Database Chatbot")
+    
+    st.markdown("---")
+    st.write("Ask questions about mentees, courses, lessons, companies, and more.")
 
     # Initialize connection
     if 'conn' not in st.session_state:
@@ -247,43 +274,49 @@ def main():
         return
 
     # User input
-    user_input = st.text_input("Enter your question:")
+    user_input = st.text_input("Enter your question:", placeholder="e.g., Show me the top 5 mentees by attendance")
 
-    if st.button("Submit"):
+    if st.button("Submit", key="submit"):
         if user_input:
-            # Print user input
-            st.subheader("Your question:")
-            st.write(user_input)
+            with st.spinner("Generating query and fetching results..."):
+                # Print user input
+                st.subheader("Your question:")
+                st.info(user_input)
 
-            generated_sql = generate_sql_query(user_input)
+                generated_sql = generate_sql_query(user_input)
 
-            if generated_sql:
-                st.subheader("Generated SQL query:")
-                st.code(generated_sql, language="sql")
+                if generated_sql:
+                    st.subheader("Generated SQL query:")
+                    st.code(generated_sql, language="sql")
 
-                results = execute_query(st.session_state.conn, generated_sql)
+                    results = execute_query(st.session_state.conn, generated_sql)
 
-                if results:
-                    st.subheader("Query results:")
-                    # Fetch column names
-                    # column_names = [desc[0] for desc in st.session_state.conn.cursor().description]
-                    df = pd.DataFrame(results)
-                    st.dataframe(df)
+                    if results:
+                        st.subheader("Query results:")
+                        df = pd.DataFrame(results)
+                        
+                        # Display results in an expandable section
+                        with st.expander("View Results Table", expanded=True):
+                            st.dataframe(df.style.highlight_max(axis=0), use_container_width=True)
 
-                    # Add download button for CSV
-                    csv = df.to_csv(index=False)
-                    st.download_button(
-                        label="Download results as CSV",
-                        data=csv,
-                        file_name="query_results.csv",
-                        mime="text/csv",
-                    )
+                        # Add download button for CSV
+                        csv = df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download results as CSV",
+                            data=csv,
+                            file_name="query_results.csv",
+                            mime="text/csv",
+                        )
+                    else:
+                        st.warning("No results found or there was an error executing the query.")
                 else:
-                    st.warning("No results found or there was an error executing the query.")
-            else:
-                st.error("I'm sorry, I couldn't generate a proper query for your request.")
+                    st.error("I'm sorry, I couldn't generate a proper query for your request.")
         else:
             st.warning("Please enter a question.")
+
+    # Add a footer
+    st.markdown("---")
+    st.markdown("Built with ❤️ by the Scaler Academy Team")
 
 if __name__ == "__main__":
     main()
