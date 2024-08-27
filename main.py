@@ -294,11 +294,6 @@ def main():
                     if results:
                         st.subheader("Query results:")
                         df = pd.DataFrame(results)
-                        
-                        # Display results in an expandable section
-                        with st.expander("View Results Table", expanded=True):
-                            st.dataframe(df.style.highlight_max(axis=0), use_container_width=True)
-
                         # Add download button for CSV
                         csv = df.to_csv(index=False)
                         st.download_button(
