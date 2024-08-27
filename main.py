@@ -244,21 +244,30 @@ def main():
     .stTextInput>div>div>input {
         background-color: white;
     }
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    .logo-container img {
+        max-width: 300px;
+        width: 100%;
+    }
     </style>
     """, unsafe_allow_html=True)
 
     # Application header
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        # Load and display the local logo image
-        logo_path = "Scaler_Logo_Transparent.png"  # Update this path
-        try:
-            logo = Image.open(logo_path)
-            st.image(logo, width=100)
-        except FileNotFoundError:
-            st.error(f"Logo file not found at {logo_path}")
-    with col2:
-        st.title("Scaler Academy Database Chatbot")
+    # Load and display the local logo image
+    logo_path = "Scaler_Logo_Transparent.png"  # Update this path
+    try:
+        logo = Image.open(logo_path)
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        st.image(logo, use_column_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error(f"Logo file not found at {logo_path}")
+
+    st.title("Scaler Academy Database Chatbot")
     
     st.markdown("---")
     st.write("Ask questions about mentees, courses, lessons, companies, and more.")
@@ -315,7 +324,7 @@ def main():
 
     # Add a footer
     st.markdown("---")
-    st.markdown("Built with ❤️ by the Scaler Academy Team")
+    st.markdown("Built with ❤️ by the Scaler Product Analytics Team")
 
 if __name__ == "__main__":
     main()
