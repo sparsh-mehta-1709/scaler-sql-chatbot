@@ -21,14 +21,15 @@ def connect_to_db():
         return None
 
 def execute_query(conn, query):
-    """Execute a SQL query and return the results."""
+    """Execute a SQL query and return the results and cursor."""
     try:
         with conn.cursor() as cur:
             cur.execute(query)
-            return cur.fetchall()
+            results = cur.fetchall()
+            return results, cur
     except psycopg2.Error as e:
         print(f"Error executing query: {e}")
-        return None
+        return None, None
 
 def get_gpt4_response(prompt):
     """Get a response from GPT-4 using the OpenAI API."""
@@ -282,11 +283,17 @@ def main():
                     st.subheader("Generated SQL query:")
                     st.code(generated_sql, language="sql")
 
-                    results = execute_query(st.session_state.conn, generated_sql)
+                    results, cur = execute_query(st.session_state.conn, generated_sql)
 
-                    if results:
+                    if results and cur:
                         st.subheader("Query results:")
                         df = pd.DataFrame(results)
+                        
+                        # Get column names from the cursor description
+                        column_names = [desc[0] for desc in cur.description]
+                        
+                        # Assign column names to the dataframe
+                        df.columns = column_names
                         
                         # Display results in an expandable section without highlighting
                         with st.expander("View Results Table", expanded=True):
