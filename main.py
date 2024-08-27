@@ -249,6 +249,16 @@ def main():
         padding: 10px 0;
         font-style: italic;
     }
+    /* Add these new styles */
+    body {
+        color: #333333;
+    }
+    .stTextInput>div>div>input {
+        color: #333333;
+    }
+    .stSelectbox>div>div>div {
+        color: #333333;
+    }
     </style>
     """, unsafe_allow_html=True)
 
