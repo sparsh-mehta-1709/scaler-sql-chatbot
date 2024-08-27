@@ -149,7 +149,7 @@ def generate_sql_query(user_input):
     28. WHENEVER ASSIGNMENT PSP OR HW PSP IS ASKED CALCULATE THE total_assignment_problems_solved AND total_assignment_problems FIRSTLY AND AFTER THAT GIVE THE PERCENTAGE
     29. In where clause do not use any subquery
     30. To know about how many paid learners come in a month use 
-    punched_leads -> applicant_tracks (using applicant_track_id) -> super_batches (using super_batch_id) -> super_batch_groups (using super_batch_group_id) -> cohorts (using cohort_id) and alweays use cohort name as filter
+    punched_leads-> applicant_tracks (using applicant_track_id column from punched_leads) -> super_batches (using super_batch_id from applicant_tracks) -> super_batch_groups (using super_batch_group_id from super_batches) -> cohorts (using cohort_id from super_batch_groups) and alweays use cohort name as filter
     31. To know about Net Promoter Score (NPS) and to get nps formula is (promter-detractor)/(promoter+neutral+detractor)*100 
     where promoter is 9 or 10, neutral is 7 or 8 and detractor is 1 to 6 use this table scaler_ebdb_interviewbit_form_responses
     use this query to get the data
