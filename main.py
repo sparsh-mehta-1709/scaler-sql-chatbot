@@ -247,6 +247,7 @@ def main():
     .logo-container {
         display: flex;
         justify-content: center;
+        align-items: center;
         margin-bottom: 20px;
     }
     .logo-container img {
@@ -262,7 +263,7 @@ def main():
     try:
         logo = Image.open(logo_path)
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-        st.image(logo, use_column_width=True)
+        st.image(logo, use_column_width=False, width=300)
         st.markdown('</div>', unsafe_allow_html=True)
     except FileNotFoundError:
         st.error(f"Logo file not found at {logo_path}")
