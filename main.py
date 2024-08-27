@@ -251,7 +251,7 @@ def main():
     col1, col2 = st.columns([1, 5])
     with col1:
         # Load and display the local logo image
-        logo_path = "logo.png"  # Update this path
+        logo_path = "Scaler_Logo_Transparent.png"  # Update this path
         try:
             logo = Image.open(logo_path)
             st.image(logo, width=100)
