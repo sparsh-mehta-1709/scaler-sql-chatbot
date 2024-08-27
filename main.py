@@ -148,62 +148,59 @@ def generate_sql_query(user_input):
     LEFT JOIN scaler_ebdb_interviewbit_test_session_problems ibtsp ON ibtsp.test_session_id = ibts.id
     28. WHENEVER ASSIGNMENT PSP OR HW PSP IS ASKED CALCULATE THE total_assignment_problems_solved AND total_assignment_problems FIRSTLY AND AFTER THAT GIVE THE PERCENTAGE
     29. In where clause do not use any subquery
-    30. To know about how many paid learners come in a month use 
-    punched_leads-> applicant_tracks (using applicant_track_id column from punched_leads) -> super_batches (using super_batch_id from applicant_tracks) -> super_batch_groups (using super_batch_group_id from super_batches) -> cohorts (using cohort_id from super_batch_groups) and alweays use cohort name as filter
-    The query to get the data is select c.name as cohort_name,count(distinct pl.lead_email) as learner_count from scaler_ebdb_punched_leads pl join scaler_ebdb_applicant_tracks at on at.id=pl.applicant_track_id join scaler_ebdb_super_batches sb on sb.id=at.super_batch_id join scaler_ebdb_super_batch_groups sbg on sbg.id=sb.super_batch_group_id join scaler_ebdb_cohorts c on c.id=sbg.cohort_id group by c.name,c.end_date order by c.end_date desc;
-    31. To know about Net Promoter Score (NPS) and to get nps formula is (promter-detractor)/(promoter+neutral+detractor)*100 
-    where promoter is 9 or 10, neutral is 7 or 8 and detractor is 1 to 6 use this table scaler_ebdb_interviewbit_form_responses
-    use this query to get the data
-    select distinct m.id as responder_id,scaler_ebdb_users.email as email,scaler_ebdb_interviewbit_form_responses.response::int as nps_rating,scaler_ebdb_interviewbit_form_responses.created_at::date as nps_date
-FROM scaler_ebdb_interviewbit_form_responses
-LEFT JOIN scaler_ebdb_mentee_batches ON scaler_ebdb_mentee_batches.mentee_id = scaler_ebdb_interviewbit_form_responses.responder_id
-LEFT JOIN scaler_ebdb_batches ON scaler_ebdb_batches.id = scaler_ebdb_mentee_batches.batch_id
-LEFT JOIN scaler_ebdb_super_batches ON scaler_ebdb_super_batches.id = scaler_ebdb_batches.super_batch_id
-LEFT JOIN scaler_ebdb_super_batch_groups ON scaler_ebdb_super_batch_groups.id = scaler_ebdb_super_batches.super_batch_group_id
-LEFT JOIN scaler_ebdb_mentees m on m.id=scaler_ebdb_interviewbit_form_responses.responder_id
-LEFT JOIN scaler_ebdb_users on scaler_ebdb_users.id=m.user_id 
-WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
-	AND scaler_ebdb_interviewbit_form_responses.responder_type = 'Mentee'
-	AND extract(day FROM scaler_ebdb_interviewbit_form_responses.created_at) BETWEEN 5
-		AND 26
-	order by 4 desc 
-28. ALWAYS USE DISTINCT KEYWORD IN THE QUERY ANS AVOID USING ALIAS
-
     """
 
     schema_info = """
     Available tables and their relevant columns:
-    - scaler_ebdb_mentee_lessons: id, mentee_id, batch_lesson_id, status, attendance, passive_attendance, aggregate_attendance, lesson_rating, zoom_link, submitted_feedback, events, zoom_identifier
-    - scaler_ebdb_batch_lessons: id, batch_id, lesson_id, status, adjustment_factor, start_time, end_time, average_rating, ratings_count, zoom_id, test_link, test_id, summary, archived_session_link, zoom_recordings_id, master_ta_id
-    - scaler_ebdb_lessons: id, academy_topic_id, lesson_type, test_id, name, description, duration, course_id, status, created_by, updated_by, meta
-    - scaler_ebdb_batches: id, super_batch_id, batch_name, channel_id, scheduler
-    - scaler_ebdb_super_batches: id, name, course_id, super_batch_group_id, start_date, duration, class_start_time, timezone, status, country, ta_flock_channel_id, announcement_channel_id, meta, onboarding_details, timeline, eligibility_info, min_grad_year, max_grad_year, min_experience, max_experience, academy_schedule_id, batch_type, sequence
-    - scaler_ebdb_super_batch_groups: id, group_name, cohort_id, meta
-    - scaler_ebdb_academy_topics: id, title, academy_module_id, slug, level, course_id, type_of_topic, parent_topic_id, updated_by, created_by, bucket_id, activity_type, junction_number
-    - scaler_ebdb_academy_modules: id, name, category, duration_in_weeks, dummy
-    - scaler_ebdb_super_batch_academy_topics: super_batch_id, academy_topic_id, date_of_topic
+    - scaler_ebdb_mentee_lessons: id, mentee_id, batch_lesson_id, status, attendance, passive_attendance, aggregate_attendance, lesson_rating
+    - scaler_ebdb_batch_lessons: id, batch_id, lesson_id, status, adjustment_factor
+    - scaler_ebdb_lessons: id, academy_topic_id, lesson_type, test_id
+    - scaler_ebdb_batches: id, super_batch_id
+    - scaler_ebdb_super_batches: id, name, course_id, super_batch_group_id
+    - scaler_ebdb_super_batch_groups: id, group_name
+    - scaler_ebdb_academy_topics: id, title, academy_module_id
+    - scaler_ebdb_academy_modules: id, name, category
+    - scaler_ebdb_super_batch_academy_topics: super_batch_id, academy_topic_id, date_of_topic, lecture_bucket_id
     - scaler_ebdb_courses: id, title, slug
-    - scaler_ebdb_mentees: id, user_id, status, solved_percentage
+    - scaler_ebdb_mentees: id, user_id, status
     - scaler_ebdb_mentee_modules: id, mentee_id, academy_module_id, status, order
-    - scaler_ebdb_mentee_batches: mentee_id, batch_id, status, current_academy_streak, streak_updated_at, best_streak, streak_freeze_count, degree_enrollment_status, user_id
-    - scaler_ebdb_users: id, email, name, username, slug, phone_number
-    - scaler_ebdb_interviewbit_tests: id, test_type, name, duration, status, created_by, updated_by, meta
-    - scaler_ebdb_interviewbit_test_problems: id, test_id, problem_id, order, max_score, custom_question_name, lock, message
-    - scaler_ebdb_problems: id, problem_statement, judge_type
-    - scaler_ebdb_interviewbit_test_sessions: id, test_id, user_id, status, start_time, end_time, score, meta, candidate_name, candidate_email, candidate_work_experience, candidate_gender, candidate_contact_number, candidate_city, candidate_cgpa, candidate_degree, candidate_branch, candidate_university, candidate_graduation_city, disclaimer, user_start_time, user_url_identifier, restricted_events, owner_session, opened_at, clicked_at, slug, platform_feedback, question_feedback, practice_score
-    - scaler_ebdb_interviewbit_test_session_problems: id, test_session_id, problem_id, status, score, start_time, time_to_solve, first_solved_at, practice_score, penalty_time
+    - scaler_ebdb_mentee_batches: mentee_id, batch_id
+    - scaler_ebdb_users: id, email, phone_number
+    - scaler_ebdb_interviewbit_tests: id, test_type
+    - scaler_ebdb_interviewbit_test_problems: id, test_id, problem_id
+    - scaler_ebdb_problems: id
+    - scaler_ebdb_interviewbit_test_sessions: id, test_id, user_id
+    - scaler_ebdb_interviewbit_test_session_problems: id, test_session_id, problem_id, status
+    - scaler_ebdb_mentees: id, status, solved_percentage
+    - scaler_ebdb_mentee_batches: mentee_id, batch_id
+    - scaler_ebdb_batches: id, batch_name, super_batch_id
+    - scaler_ebdb_super_batches: id, name, course_id
+    - scaler_ebdb_courses: id, title
+    - scaler_ebdb_super_batch_academy_topics: super_batch_id, academy_topic_id, date_of_topic
+    - scaler_ebdb_academy_topics: id, title, academy_module_id
+    - scaler_ebdb_lessons: id, academy_topic_id, lesson_types
+    - scaler_ebdb_batch_lessons: id, batch_id, lesson_id, start_time, end_time, status
+    - scaler_ebdb_mentee_lessons: id, mentee_id, batch_lesson_id, status, attendance, passive_attendance, aggregate_attendance, submitted_feedback
     - scaler_ebdb_companies: id, name, slug, use_dashboard
     - scaler_ebdb_company_team_members: id, company_team_id, user_id, member_type, access_levels
     - scaler_ebdb_company_teams: id, name, company_id, allocated, state
     - scaler_ebdb_interviewbit_test_accounts: id, company_id, email, company_name
+    - scaler_ebdb_interviewbit_test_problems: id, test_id, problem_id, max_score, custom_question_name, lock, message
     - scaler_ebdb_problem_tests: id, problem_id, score, time_limit, memory_limit, created_at, updated_at, input_data_file_name, output_data_file_name, input_lines_per_test, test_cases_count
     - scaler_ebdb_interviewbit_test_session_codes: id, test_session_id, problem_id, programming_language_id, user_saved_code_id, session_type
+    - scaler_ebdb_interviewbit_test_session_problems: id, test_session_id, problem_id, score, status, start_time, time_to_solve, first_solved_at, practice_score, penalty_time
+    - scaler_ebdb_interviewbit_test_sessions: id, test_id, user_id, candidate_name, candidate_email, candidate_work_experience, candidate_gender, candidate_contact_number, candidate_city, candidate_cgpa, candidate_degree, candidate_branch, candidate_university, candidate_graduation_city, disclaimer, status, user_start_time, user_url_identifier, score, restricted_events, owner_session, opened_at, clicked_at, slug, platform_feedback, question_feedback, practice_score
     - scaler_ebdb_interviewbit_test_user_submissions: id, test_id, test_session_id, problem_id, user_submission_id, submission_type
+    - scaler_ebdb_interviewbit_tests: id, user_id, test_name, test_duration, problem_count, cutoff, total_score, candidate_email, candidate_city, candidate_name, candidate_gender, candidate_branch, candidate_work_experience, candidate_cgpa, candidate_contact_number, candidate_university, candidate_resume, candidate_graduation_city, candidate_degree, company_id, start_time, end_time, instructions, slug, lock
+    - scaler_ebdb_problems: id, problem_statement, judge_type
     - scaler_ebdb_user_submissions: id, user_id, problem_id, submission_type, programming_language_id, submission_content, status, result
     - scaler_ebdb_user_submission_test_results: id, user_submission_id, user_id, problem_test_id, result, score, time, memory, first_failed_test_case, failed_input, expected_output, user_output, error_message, created_at, updated_at
+    - scaler_ebdb_users: id, email, name, username, slug
     - scaler_ebdb_user_saved_codes: id, user_id, problem_id, programming_language_id, content
+    - scaler_ebdb_academy_modules: id, name, category
     - scaler_ebdb_course_modules: id, course_id, academy_module_id
     - scaler_ebdb_super_batch_modules: id, supere_batch_id, academy_module_id
+    - scaler_ebdb_mentee_modules: id, mentee_id, academy_module_id
     - scaler_ebdb_mentee_session_grants: id, mentee_id, category, grant_type, owner_type, owner_id
     - scaler_ebdb_ninja_hire_interviews: id, type
     - scaler_ebdb_ninja_hire_associations: ninja_hire_interview_id, associate
@@ -212,12 +209,6 @@ WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
     - scaler_ebdb_notebook_resources: id, resource_type, resource_id, notebook_id
     - scaler_ebdb_notebook_associations: id, associate_type, associate_id, notebook_id
     - scaler_ebdb_notes: id, content
-    - scaler_ebdb_punched_leads: id, applicant_track_id, lead_name, lead_email, lead_mobile, lead_source, company_type, owner_id, cycle, current_college, current_company, current_ctc, total_work_experience, current_designation, down_payment_amount, cycle_start_date, cycle_end_date, sale_amount, sale_status, enrollment_type
-    - scaler_ebdb_applicant_tracks: id, user_id, status, test_id, applicant_type, super_batch_id, submitted_on, type, available_from, referred_by, rejection_reason, source, medium, campaign, meta, owner_id, status_updated_at, status_expiring_at
-    - scaler_ebdb_cohorts: id, name, start_date, end_date, course, meta_info
-    - scaler_ebdb_interviewbit_form_groups: id, name, description, status, created_by, updated_by
-    - scaler_ebdb_interviewbit_forms: id, name, description, form_json, status, created_by, updated_by
-    - scaler_ebdb_interviewbit_form_responses: id, form_id, user_id, response_json
     """
 
     prompt = f"""Given the following reference logic and schema information:
@@ -257,6 +248,16 @@ def main():
         text-align: center;
         padding: 10px 0;
         font-style: italic;
+    }
+    /* Add these new styles */
+    body {
+        color: #333333;
+    }
+    .stTextInput>div>div>input {
+        color: #333333;
+    }
+    .stSelectbox>div>div>div {
+        color: #333333;
     }
     </style>
     """, unsafe_allow_html=True)
