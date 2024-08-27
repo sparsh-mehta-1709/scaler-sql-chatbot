@@ -150,6 +150,7 @@ def generate_sql_query(user_input):
     29. In where clause do not use any subquery
     30. To know about how many paid learners come in a month use 
     punched_leads-> applicant_tracks (using applicant_track_id column from punched_leads) -> super_batches (using super_batch_id from applicant_tracks) -> super_batch_groups (using super_batch_group_id from super_batches) -> cohorts (using cohort_id from super_batch_groups) and alweays use cohort name as filter
+    The query to get the data is select c.name as cohort_name,count(distinct pl.lead_email) as learner_count from scaler_ebdb_punched_leads pl join scaler_ebdb_applicant_tracks at on at.id=pl.applicant_track_id join scaler_ebdb_super_batches sb on sb.id=at.super_batch_id join scaler_ebdb_super_batch_groups sbg on sbg.id=sb.super_batch_group_id join scaler_ebdb_cohorts c on c.id=sbg.cohort_id group by c.name,c.end_date order by c.end_date desc;
     31. To know about Net Promoter Score (NPS) and to get nps formula is (promter-detractor)/(promoter+neutral+detractor)*100 
     where promoter is 9 or 10, neutral is 7 or 8 and detractor is 1 to 6 use this table scaler_ebdb_interviewbit_form_responses
     use this query to get the data
