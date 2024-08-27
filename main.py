@@ -4,6 +4,7 @@ import psycopg2
 import re
 import os
 import pandas as pd
+from PIL import Image
 
 # Set up OpenAI API key
 client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
@@ -53,9 +54,7 @@ def get_gpt4_response(prompt):
 
 def clean_sql_query(sql_query):
     """Remove any Markdown formatting or unnecessary characters from the SQL query."""
-    # Remove Markdown code block syntax
     sql_query = re.sub(r'```\w*\n?', '', sql_query)
-    # Remove leading/trailing whitespace
     sql_query = sql_query.strip()
     return sql_query
 
@@ -257,7 +256,13 @@ def main():
     # Application header
     col1, col2 = st.columns([1, 5])
     with col1:
-        st.image("https://www.scaler.com/topics/images/scaler-logo.webp", width=100)
+        # Load and display the local logo image
+        logo_path = "logo.png"  # Update this path
+        try:
+            logo = Image.open(logo_path)
+            st.image(logo, width=100)
+        except FileNotFoundError:
+            st.error(f"Logo file not found at {logo_path}")
     with col2:
         st.title("Scaler Academy Database Chatbot")
     
@@ -294,6 +299,11 @@ def main():
                     if results:
                         st.subheader("Query results:")
                         df = pd.DataFrame(results)
+                        
+                        # Display results in an expandable section without highlighting
+                        with st.expander("View Results Table", expanded=True):
+                            st.dataframe(df, use_container_width=True)
+
                         # Add download button for CSV
                         csv = df.to_csv(index=False)
                         st.download_button(
