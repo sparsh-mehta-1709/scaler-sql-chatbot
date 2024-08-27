@@ -148,7 +148,7 @@ def generate_sql_query(user_input):
     LEFT JOIN scaler_ebdb_interviewbit_test_session_problems ibtsp ON ibtsp.test_session_id = ibts.id
     28. WHENEVER ASSIGNMENT PSP OR HW PSP IS ASKED CALCULATE THE total_assignment_problems_solved AND total_assignment_problems FIRSTLY AND AFTER THAT GIVE THE PERCENTAGE
     29. In where clause do not use any subquery
-    30. To know about how many paid learners come in a month use punched_leads -> applicant_tracks -> super_batches -> super_batch_groups -> cohorts 
+    30. To know about how many paid learners come in a month use punched_leads -> applicant_tracks -> super_batches -> super_batch_groups -> cohorts and alweays use cohort name as filter
     31. To know about Net Promoter Score (NPS) and to get nps formula is (promter-detractor)/(promoter+neutral+detractor)*100 
     where promoter is 9 or 10, neutral is 7 or 8 and detractor is 1 to 6 use this table scaler_ebdb_interviewbit_form_responses
     use 
