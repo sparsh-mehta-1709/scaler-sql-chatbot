@@ -4,7 +4,6 @@ import psycopg2
 import re
 import os
 import pandas as pd
-from PIL import Image
 
 # Set up OpenAI API key
 client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
@@ -244,30 +243,15 @@ def main():
     .stTextInput>div>div>input {
         background-color: white;
     }
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    .logo-container img {
-        max-width: 150px;
-        width: 100%;
+    .footer {
+        text-align: center;
+        padding: 10px 0;
+        font-style: italic;
     }
     </style>
     """, unsafe_allow_html=True)
 
     # Application header
-    # Load and display the local logo image
-    logo_path = "Scaler_Logo_Transparent.png"  # Update this path
-    try:
-        logo = Image.open(logo_path)
-        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-        st.image(logo, use_column_width=False, width=150)
-        st.markdown('</div>', unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.error(f"Logo file not found at {logo_path}")
-
     st.title("Scaler Academy Database Chatbot")
     
     st.markdown("---")
@@ -323,9 +307,9 @@ def main():
         else:
             st.warning("Please enter a question.")
 
-    # Add a footer
+    # Add a centered footer
     st.markdown("---")
-    st.markdown("Built with ❤️ by the Scaler Product Analytics Team")
+    st.markdown('<p class="footer">Built with ❤️ by the Scaler Product Analytics Team</p>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
