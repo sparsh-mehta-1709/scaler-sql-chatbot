@@ -168,6 +168,7 @@ WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
 		AND 26
 	order by 4 desc 
 28. ALWAYS USE DISTINCT KEYWORD IN THE QUERY ANS AVOID USING ALIAS
+29. For the bda use owner id in punched leads table and connect it with users table using owner id of punched leads and user id in users table
 
     """
 
