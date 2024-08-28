@@ -347,7 +347,6 @@ def main():
                 st.code(result['query'], language="sql")
                 st.dataframe(result['dataframe'], use_container_width=True)
                 
-                # Add download button for CSV
                 csv = result['dataframe'].to_csv(index=False)
                 st.download_button(
                     label="📥 Download results as CSV",
@@ -356,14 +355,62 @@ def main():
                     mime="text/csv",
                 )
 
-    # Add a text area for user comments or query modifications
-    user_comment = st.text_area("Any comments or suggestions for improvement? You can also request changes to the query here.")
-    if st.button("Submit Comment/Modification"):
-        if user_comment:
-            conversation_history.append({"role": "user", "content": f"Comment/Modification: {user_comment}"})
-            st.success("Thank you for your feedback. I'll take it into account for the next query.")
-        else:
-            st.warning("Please enter a comment or modification before submitting.")
+    # Add separate text areas for comments and change requests
+    user_comment = st.text_area("Any comments or suggestions for improvement?")
+    change_request = st.text_area("Request changes to the query:")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Submit Comment"):
+            if user_comment:
+                conversation_history.append({"role": "user", "content": f"Comment: {user_comment}"})
+                st.success("Thank you for your feedback.")
+            else:
+                st.warning("Please enter a comment before submitting.")
+
+    with col2:
+        if st.button("Request Changes"):
+            if change_request:
+                conversation_history.append({"role": "user", "content": f"Change Request: {change_request}"})
+                with st.spinner("Generating new query and fetching results..."):
+                    new_generated_sql = generate_sql_query(change_request, conversation_history)
+
+                    if new_generated_sql:
+                        st.subheader("New Generated SQL query:")
+                        st.code(new_generated_sql, language="sql")
+
+                        conversation_history.append({"role": "assistant", "content": new_generated_sql})
+
+                        new_results, new_cur = execute_query(st.session_state.conn, new_generated_sql)
+
+                        if new_results and new_cur:
+                            st.subheader("New Query Results:")
+                            new_df = pd.DataFrame(new_results)
+                            new_column_names = [desc[0] for desc in new_cur.description]
+                            new_df.columns = new_column_names
+                            
+                            st.session_state.query_results.append({
+                                "question": change_request,
+                                "query": new_generated_sql,
+                                "dataframe": new_df
+                            })
+
+                            st.dataframe(new_df, use_container_width=True)
+
+                            # Add download button for new CSV
+                            new_csv = new_df.to_csv(index=False)
+                            st.download_button(
+                                label="📥 Download new results as CSV",
+                                data=new_csv,
+                                file_name="new_query_results.csv",
+                                mime="text/csv",
+                            )
+                        else:
+                            st.warning("No results found or there was an error executing the new query.")
+                    else:
+                        st.error("I'm sorry, I couldn't generate a proper query for your change request.")
+            else:
+                st.warning("Please enter a change request before submitting.")
 
     # Display conversation history
     st.subheader("Conversation History")
