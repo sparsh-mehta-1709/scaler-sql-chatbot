@@ -292,6 +292,9 @@ def main():
     # User input
     user_input = st.text_input("Enter your question:", placeholder="e.g., Show me the top 5 mentees by attendance")
 
+    if 'query_results' not in st.session_state:
+        st.session_state.query_results = []
+
     if st.button("Submit", key="submit"):
         if user_input:
             with st.spinner("Generating query and fetching results..."):
@@ -323,18 +326,12 @@ def main():
                         # Assign column names to the dataframe
                         df.columns = column_names
                         
-                        # Display results in an expandable section without highlighting
-                        with st.expander("View Results Table", expanded=True):
-                            st.dataframe(df, use_container_width=True)
-
-                        # Add download button for CSV
-                        csv = df.to_csv(index=False)
-                        st.download_button(
-                            label="📥 Download results as CSV",
-                            data=csv,
-                            file_name="query_results.csv",
-                            mime="text/csv",
-                        )
+                        # Add new results to the session state
+                        st.session_state.query_results.append({
+                            "question": user_input,
+                            "query": generated_sql,
+                            "dataframe": df
+                        })
                     else:
                         st.warning("No results found or there was an error executing the query.")
                 else:
@@ -342,14 +339,31 @@ def main():
         else:
             st.warning("Please enter a question.")
 
-    # Add a text area for user comments
-    user_comment = st.text_area("Any comments or suggestions for improvement?")
-    if st.button("Submit Comment"):
+    # Display all results in dropdowns
+    if st.session_state.query_results:
+        st.subheader("All Query Results")
+        for i, result in enumerate(reversed(st.session_state.query_results), 1):
+            with st.expander(f"Result {i}: {result['question']}", expanded=(i == 1)):
+                st.code(result['query'], language="sql")
+                st.dataframe(result['dataframe'], use_container_width=True)
+                
+                # Add download button for CSV
+                csv = result['dataframe'].to_csv(index=False)
+                st.download_button(
+                    label="📥 Download results as CSV",
+                    data=csv,
+                    file_name=f"query_results_{i}.csv",
+                    mime="text/csv",
+                )
+
+    # Add a text area for user comments or query modifications
+    user_comment = st.text_area("Any comments or suggestions for improvement? You can also request changes to the query here.")
+    if st.button("Submit Comment/Modification"):
         if user_comment:
-            conversation_history.append({"role": "user", "content": f"Comment: {user_comment}"})
-            st.success("Thank you for your feedback. I'll take it into account for future queries.")
+            conversation_history.append({"role": "user", "content": f"Comment/Modification: {user_comment}"})
+            st.success("Thank you for your feedback. I'll take it into account for the next query.")
         else:
-            st.warning("Please enter a comment before submitting.")
+            st.warning("Please enter a comment or modification before submitting.")
 
     # Display conversation history
     st.subheader("Conversation History")
@@ -364,4 +378,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-	
