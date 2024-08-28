@@ -56,7 +56,7 @@ def generate_sql_query(user_input):
     """Generate a SQL query based on the user's input."""
     reference_logic = """
     Logic from reference query:
-    1. Use a CTE (Common Table Expression) named 'cte' for complex calculations.
+    1. Use a CTE (Common Table Expression) named 'cte' for complex calculations. Use scaler_ebdb_enums to get the enum value of any table where table_identifier column has tbale name and column_identifier column has the column name of corresponding table
     2. Join these main tables: mentee_lessons, batch_lessons, lessons, batches, super_batches, super_batch_groups, academy_topics, academy_modules, super_batch_academy_topics, courses, mentees, mentee_modules, mentee_batches, users, interviewbit_tests, interviewbit_test_problems, problems, interviewbit_test_sessions, interviewbit_test_session_problems.
     3. Calculate program using CASE statement based on course slug (case when c.slug in ('scaler-wp-intake','scaler-wp-elitex','scaler-wp-elitex-slow','scaler-wp-superx','scaler-wp-beginner','scaler-wp-beginner-refresher',
         'scaler-wp-beginner-repeater-failed-once','scaler-wp-beginner-repeater-failed-twice','scaler-wp-data-engineering','scaler-wp-elitex-refresher-java','scaler-wp-elitex-refresher-python',
