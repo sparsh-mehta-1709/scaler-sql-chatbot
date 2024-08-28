@@ -11,7 +11,6 @@ client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
 # Database connection parameters
 db_params = st.secrets["db_credentials"]
 
-
 def connect_to_db():
     """Establish a connection to the Redshift database."""
     try:
@@ -32,12 +31,15 @@ def execute_query(conn, query):
         print(f"Error executing query: {e}")
         return None, None
 
-def get_gpt4_response(messages):
+def get_gpt4_response(prompt):
     """Get a response from GPT-4 using the OpenAI API."""
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=messages
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that generates SQL queries for a Redshift database. The database contains information about mentees, courses, lessons, companies, and more. Always return only the SQL query, without any explanations, comments, or formatting. Always remember to use redshift syntax."},
+                {"role": "user", "content": prompt}
+            ]
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -54,7 +56,7 @@ def generate_sql_query(user_input):
     """Generate a SQL query based on the user's input."""
     reference_logic = """
     Logic from reference query:
-    1. Use a CTE (Common Table Expression) named 'cte' for complex calculations.
+    1. Use a CTE (Common Table Expression) named 'cte' for complex calculations. Use scaler_ebdb_mit_enums table to get the enum value of any table where table_identifier column has tbale name and column_identifier column has the column name of corresponding table
     2. Join these main tables: mentee_lessons, batch_lessons, lessons, batches, super_batches, super_batch_groups, academy_topics, academy_modules, super_batch_academy_topics, courses, mentees, mentee_modules, mentee_batches, users, interviewbit_tests, interviewbit_test_problems, problems, interviewbit_test_sessions, interviewbit_test_session_problems.
     3. Calculate program using CASE statement based on course slug (case when c.slug in ('scaler-wp-intake','scaler-wp-elitex','scaler-wp-elitex-slow','scaler-wp-superx','scaler-wp-beginner','scaler-wp-beginner-refresher',
         'scaler-wp-beginner-repeater-failed-once','scaler-wp-beginner-repeater-failed-twice','scaler-wp-data-engineering','scaler-wp-elitex-refresher-java','scaler-wp-elitex-refresher-python',
@@ -166,6 +168,7 @@ WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
 		AND 26
 	order by 4 desc 
 28. ALWAYS USE DISTINCT KEYWORD IN THE QUERY ANS AVOID USING ALIAS
+29. For the bda use owner id in punched leads table and connect it with users table using owner id of punched leads and user id in users table
 
     """
 
@@ -274,38 +277,19 @@ def main():
         st.error("Failed to connect to the database. Please check your connection settings.")
         return
 
-    # Initialize conversation history
-    if 'conversation_history' not in st.session_state:
-        st.session_state.conversation_history = [
-            {"role": "system", "content": "You are a helpful assistant that generates SQL queries for a Redshift database. The database contains information about mentees, courses, lessons, companies, and more. Always return only the SQL query, without any explanations, comments, or formatting."}
-        ]
-
     # User input
     user_input = st.text_input("Enter your question:", placeholder="e.g., Show me the top 5 mentees by attendance")
 
     if st.button("Submit", key="submit"):
         if user_input:
             with st.spinner("Generating query and fetching results..."):
-                # Add user input to conversation history
-                st.session_state.conversation_history.append({"role": "user", "content": user_input})
+                # Print user input
+                st.subheader("Your question:")
+                st.info(user_input)
 
-                # Generate response
-                response = get_gpt4_response(st.session_state.conversation_history)
+                generated_sql = generate_sql_query(user_input)
 
-                if response:
-                    # Add assistant response to conversation history
-                    st.session_state.conversation_history.append({"role": "assistant", "content": response})
-
-                    # Display conversation history
-                    st.subheader("Conversation:")
-                    for message in st.session_state.conversation_history[1:]:  # Skip the system message
-                        if message["role"] == "user":
-                            st.info(message["content"])
-                        else:
-                            st.success(message["content"])
-
-                    # Extract and execute SQL query
-                    generated_sql = clean_sql_query(response)
+                if generated_sql:
                     st.subheader("Generated SQL query:")
                     st.code(generated_sql, language="sql")
 
@@ -335,24 +319,10 @@ def main():
                         )
                     else:
                         st.warning("No results found or there was an error executing the query.")
-
-                    # Add feedback options
-                    feedback = st.radio("Was this response helpful?", ("Yes", "No"))
-                    if feedback == "No":
-                        improvement = st.text_area("Please explain what was wrong or how it could be improved:")
-                        if st.button("Submit Feedback"):
-                            # Add feedback to conversation history
-                            st.session_state.conversation_history.append({"role": "user", "content": f"The previous response was not helpful. Here's why: {improvement}"})
-                            st.success("Thank you for your feedback. I'll try to improve based on your input.")
                 else:
-                    st.error("I'm sorry, I couldn't generate a proper response for your request.")
+                    st.error("I'm sorry, I couldn't generate a proper query for your request.")
         else:
             st.warning("Please enter a question.")
-
-    # Add option to clear conversation history
-    if st.button("Clear Conversation History"):
-        st.session_state.conversation_history = [st.session_state.conversation_history[0]]  # Keep only the system message
-        st.success("Conversation history cleared.")
 
     # Add a centered footer
     st.markdown("---")
