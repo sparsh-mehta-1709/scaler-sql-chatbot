@@ -355,21 +355,20 @@ def main():
                     mime="text/csv",
                 )
 
-    # Add separate text areas for comments and change requests
-    user_comment = st.text_area("Any comments or suggestions for improvement?")
-    change_request = st.text_area("Request changes to the query:")
+    # Add dropdown for comment or change request
+    action_type = st.selectbox("Choose an action:", ["Submit Comment", "Request Changes"])
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Submit Comment"):
+    if action_type == "Submit Comment":
+        user_comment = st.text_area("Enter your comment or suggestion:")
+        if st.button("Submit"):
             if user_comment:
                 conversation_history.append({"role": "user", "content": f"Comment: {user_comment}"})
                 st.success("Thank you for your feedback.")
             else:
                 st.warning("Please enter a comment before submitting.")
-
-    with col2:
-        if st.button("Request Changes"):
+    else:  # Request Changes
+        change_request = st.text_area("Enter your change request:")
+        if st.button("Submit"):
             if change_request:
                 conversation_history.append({"role": "user", "content": f"Change Request: {change_request}"})
                 with st.spinner("Generating new query and fetching results..."):
