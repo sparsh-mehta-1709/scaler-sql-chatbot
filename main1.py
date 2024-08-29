@@ -141,7 +141,7 @@ def generate_sql_query(user_input, conversation_history):
     WHENEVER IN WHERE CLAUSE DATE IS USED THEN DO DATE_COLUMN::DATE= CONDITION
     25. ALWAYS MAKE THE QUERY IN THIS ORDER :
         mentees -> mentee lessons -> batch lessons -> batches -> super batches -> lessons -> academy topics -> super batch academy topics
-    26. ALWAYS USE mentee lessons status=1 and batch lessons status=3 whenever these tables are used
+    26. ALWAYS USE STATUS ACCORDING TO SCALER_EBDB_MIT_ENUMS TABLE
     27. FOR ASSIGNMENT PSP OR ANY PROBLEM SOLVING METRIC USE
     LEFT JOIN scaler_ebdb_interviewbit_tests ibt ON ibt.id = l.test_id
     LEFT JOIN scaler_ebdb_interviewbit_test_problems ibtp ON ibtp.test_id = ibt.id
