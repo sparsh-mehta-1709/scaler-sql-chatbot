@@ -4,6 +4,7 @@ import psycopg2
 import re
 import os
 import pandas as pd
+import time
 
 # Set up OpenAI API key
 client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
@@ -21,15 +22,29 @@ def connect_to_db():
         return None
 
 def execute_query(conn, query):
-    """Execute a SQL query and return the results and cursor."""
+    """Execute a SQL query and return the results, cursor, and error message."""
     try:
         with conn.cursor() as cur:
             cur.execute(query)
             results = cur.fetchall()
-            return results, cur
+            return results, cur, None
     except psycopg2.Error as e:
         print(f"Error executing query: {e}")
-        return None, None
+        return None, None, str(e)
+    finally:
+        conn.rollback()  # Rollback any failed transaction
+
+def reconnect_to_db():
+    """Attempt to reconnect to the database."""
+    attempts = 3
+    for _ in range(attempts):
+        try:
+            conn = connect_to_db()
+            if conn:
+                return conn
+        except psycopg2.Error:
+            time.sleep(1)  # Wait for 1 second before retrying
+    return None
 
 def get_gpt4_response(prompt, conversation_history):
     try:
@@ -321,7 +336,18 @@ def main():
                     # Add generated SQL to conversation history
                     conversation_history.append({"role": "assistant", "content": generated_sql})
 
-                    results, cur = execute_query(st.session_state.conn, generated_sql)
+                    results, cur, error = execute_query(st.session_state.conn, generated_sql)
+
+                    if results is None and cur is None:
+                        st.error(f"Error executing query: {error}")
+                        st.warning("Attempting to reconnect...")
+                        new_conn = reconnect_to_db()
+                        if new_conn:
+                            st.session_state.conn = new_conn
+                            results, cur, error = execute_query(st.session_state.conn, generated_sql)
+                        else:
+                            st.error("Failed to reconnect to the database. Please try again later.")
+                            return
 
                     if results and cur:
                         st.subheader("Query results:")
@@ -340,7 +366,10 @@ def main():
                             "dataframe": df
                         })
                     else:
-                        st.warning("No results found or there was an error executing the query.")
+                        if error:
+                            st.error(f"Error executing query: {error}")
+                        else:
+                            st.warning("No results found for the query.")
                 else:
                     st.error("I'm sorry, I couldn't generate a proper query for your request.")
         else:
@@ -387,7 +416,18 @@ def main():
 
                         conversation_history.append({"role": "assistant", "content": new_generated_sql})
 
-                        new_results, new_cur = execute_query(st.session_state.conn, new_generated_sql)
+                        new_results, new_cur, new_error = execute_query(st.session_state.conn, new_generated_sql)
+
+                        if new_results is None and new_cur is None:
+                            st.error(f"Error executing new query: {new_error}")
+                            st.warning("Attempting to reconnect...")
+                            new_conn = reconnect_to_db()
+                            if new_conn:
+                                st.session_state.conn = new_conn
+                                new_results, new_cur, new_error = execute_query(st.session_state.conn, new_generated_sql)
+                            else:
+                                st.error("Failed to reconnect to the database. Please try again later.")
+                                return
 
                         if new_results and new_cur:
                             st.subheader("New Query Results:")
@@ -412,7 +452,10 @@ def main():
                                 mime="text/csv",
                             )
                         else:
-                            st.warning("No results found or there was an error executing the new query.")
+                            if new_error:
+                                st.error(f"Error executing new query: {new_error}")
+                            else:
+                                st.warning("No results found for the new query.")
                     else:
                         st.error("I'm sorry, I couldn't generate a proper query for your change request.")
             else:
