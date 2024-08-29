@@ -171,6 +171,12 @@ WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
 	order by 4 desc 
 28. ALWAYS USE DISTINCT KEYWORD IN THE QUERY ANS AVOID USING ALIAS
 29. For the bda use owner id in punched leads table and connect it with users table using owner id of punched leads and user id in users table
+30. to calculate class rating use SUM(bl.ratings_count) / (COUNT(bl.id) / COUNT(DISTINCT bl.id)) AS ratings_count,
+     ROUND(SUM(bl.average_rating * bl.ratings_count)/SUM(bl.ratings_count), 2) AS class_rating
+31. To get instructor information use 
+join scaler_ebdb_sbat_instructor_associations sia on sia.sbat_id=scaler_ebdb_super_batch_academy_topics.id and sia.status in (2,3)
+join scaler_ebdb_instructors i ON i.id = sia.instructor_id
+join scaler_ebdb_users iu ON iu.id = i.user_id 
 
     """
 
