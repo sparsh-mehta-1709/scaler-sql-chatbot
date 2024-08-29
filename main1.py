@@ -177,6 +177,7 @@ WHERE scaler_ebdb_interviewbit_form_responses.form_id = 112704
 join scaler_ebdb_sbat_instructor_associations sia on sia.sbat_id=scaler_ebdb_super_batch_academy_topics.id 
 join scaler_ebdb_instructors i ON i.id = sia.instructor_id
 join scaler_ebdb_users iu ON iu.id = i.user_id 
+32. Dont use scaler_ebdb_mit_enums table unnecessary and when required use enum_val column along with table_identifier and column_identifier
 
     """
 
