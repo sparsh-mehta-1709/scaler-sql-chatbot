@@ -79,7 +79,7 @@ def generate_sql_query(user_input, conversation_history):
     7. Calculate live_attendance, recorded_attendance, and overall_attendance using LEAST and MAX functions.
     8. Count assignment and homework problems (total and solved) based on test_type.
     9. Calculate assignment_psp and hw_psp as percentages of solved problems.
-    10. Exclude Scaler and InterviewBit emails.
+    10. Exclude Scaler and InterviewBit learner emails.
     11. Group by user_id, email, batch name, super_batch_name, program, module_name, order, class_topic, class_date, class_timing, and lecture_bucket_id.
     12. Order by email, module order, and class_date.
     13. Do not include any default filters or exclusions unless specified in the user's request.
